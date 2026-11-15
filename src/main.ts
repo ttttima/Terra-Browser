@@ -1504,6 +1504,14 @@ function sleepOtherTabs() {
   for (const tab of tabs) if (canSleep(tab)) sleepTab(tab);
 }
 
+/** The sidebar's trash button: closes the open space's asleep tabs (not pinned ones). */
+function closeAsleepTabs() {
+  const asleep = spaceTabs(activeSpaceId).filter(
+    (tab) => tab.lazyUrl && !tab.pinned && tab.id !== activeTabId,
+  );
+  for (const tab of asleep) closeTab(tab.id);
+}
+
 /** Opens a tab. With no URL it shows the clean search page. */
 function createTab(
   url: string | null,
@@ -3798,6 +3806,7 @@ function setUpIpc() {
   });
   on('terra:bookmark-menu', (id) => isText(id, 64) && showBookmarkMenu(id));
   on('terra:open-bookmarks', () => showPanelPage('bookmarks'));
+  on('terra:close-asleep-tabs', closeAsleepTabs);
   on('terra:bookmark-remove', (id) => isText(id, 64) && removeBookmark(id));
   on('terra:bookmark-rename', (id, title) => {
     if (isText(id, 64) && isText(title, 1024)) renameBookmark(id, title);

@@ -410,6 +410,12 @@ function renderTabIcon(icon: HTMLElement, tab: TabInfo) {
   }
 }
 
+// Trash button next to Bookmarks: closes the open space's sleeping tabs.
+const closeAsleep = $<HTMLButtonElement>('#close-asleep-tabs');
+closeAsleep.addEventListener('click', () =>
+  window.terra.send('terra:close-asleep-tabs'),
+);
+
 function renderTabs(state: TabsState) {
   setSidebarCollapsed(state.sidebarCollapsed);
   if (state.sidebarCollapsed) closeBookmarksPop();
@@ -445,6 +451,9 @@ function renderTabs(state: TabsState) {
   tabOrder = state.tabs.map((tab) => tab.id);
   activeTabId = state.activeTabId;
   renderSpaces(state);
+  closeAsleep.disabled = !state.tabs.some(
+    (tab) => tab.asleep && !tab.pinned && tab.id !== state.activeTabId,
+  );
   const split = state.split;
   const inSplit = (id: number) =>
     !!split && (split.left === id || split.right === id);

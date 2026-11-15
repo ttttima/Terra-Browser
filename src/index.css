@@ -1972,8 +1972,10 @@ body.settings-open #notice-bar {
 
 /* ============================================================ bookmarks pop-out */
 
-/* The bookmarks button sits next to the sidebar toggle, expanded only. */
-body.sidebar-collapsed #bookmarks-pop-button {
+/* The bookmarks and close-sleeping-tabs buttons sit next to the sidebar
+   toggle, expanded only. */
+body.sidebar-collapsed #bookmarks-pop-button,
+body.sidebar-collapsed #close-asleep-tabs {
   display: none;
 }
 
