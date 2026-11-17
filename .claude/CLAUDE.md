@@ -14,14 +14,17 @@ Terra is a desktop web browser built with Electron + TypeScript + Vite (Electron
   helper), in an isolated world
 - Data modules: `library.ts` (history, downloads), `bookmarks.ts`,
   `passwords.ts`, `site-settings.ts`, `session-store.ts`, plus `importer.ts`,
-  `adblock.ts`, `updater.ts`, `suggest.ts`, `context-menu.ts`
+  `adblock.ts`, `updater.ts`, `suggest.ts`, `context-menu.ts`,
+  `extensions.ts` (Chrome extensions from the Web Store, with
+  `ui-extensions.ts` for their toolbar buttons and Settings list)
 - `src/from-nya.ts`: Terra used to be called Nya; on the first start it
   copies Nya's data over and removes the old Nya app
 
 Everything the user saves (history, bookmarks, passwords, settings, open
 tabs) stays on their computer in the user data folder; never send it
 anywhere. Passwords are encrypted with `safeStorage`. Only GitHub (updates),
-the ad block list, and opt-in search suggestions use the network.
+the ad block list, opt-in search suggestions, and the Chrome Web Store
+(downloading extensions the user adds, and their updates) use the network.
 
 Terra must never need administrator rights: the app and installer run as
 `asInvoker` and Squirrel installs per user into `%LocalAppData%`. Don't add

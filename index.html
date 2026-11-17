@@ -237,6 +237,9 @@
         </button>
       </div>
 
+      <!-- Extension buttons (ui-extensions.ts); a click opens its popup. -->
+      <browser-action-list id="extension-actions" hidden></browser-action-list>
+
       <div class="window-controls" aria-label="Window">
         <button
           class="light light-minimize"
@@ -747,6 +750,15 @@
                   </span>
                   <button id="clear-data" class="danger">Clear data</button>
                 </div>
+              </div>
+              <div class="settings-card list-card">
+                <div class="card-title">
+                  <span id="extensions-title">Extensions</span>
+                  <button id="open-web-store" class="text-button">
+                    Get extensions
+                  </button>
+                </div>
+                <div id="extensions-list"></div>
               </div>
               <div class="settings-card">
                 <div class="card-title">

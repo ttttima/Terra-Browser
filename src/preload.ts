@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
+import { injectBrowserAction } from 'electron-chrome-extensions/browser-action';
 import type {
   BrowserState,
   DefaultBrowserState,
@@ -118,3 +119,7 @@ contextBridge.exposeInMainWorld('terra', {
   /** Where a file dropped on the window is on disk. */
   pathForFile: (file: File) => webUtils.getPathForFile(file),
 });
+
+// Extension buttons in the toolbar: defines <browser-action-list>, which
+// shows each extension's icon and badge and opens its popup on click.
+injectBrowserAction();

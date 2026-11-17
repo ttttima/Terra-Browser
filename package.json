@@ -46,6 +46,8 @@
     "vite": "^8.3.7"
   },
   "dependencies": {
+    "electron-chrome-extensions": "^4.10.0",
+    "electron-chrome-web-store": "^0.13.0",
     "electron-squirrel-startup": "^1.0.1"
   }
 }

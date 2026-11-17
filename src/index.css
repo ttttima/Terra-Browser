@@ -1422,6 +1422,39 @@ body.smooth-dividers .pop-group-end::after {
 /* macOS-style traffic lights: 16px circles, 8px apart. The group has 4px
    on the inside and 4px on the outside, so with the bar padding there is
    12px to the address bar and 12px to the window edge. */
+/* Extension buttons (ui-extensions.ts), left of the window buttons: the
+   same 32px controls as the rest of the bar, icons at --icon. */
+#extension-actions {
+  display: flex;
+  gap: var(--space-1);
+  -webkit-app-region: no-drag;
+}
+
+#extension-actions[hidden] {
+  display: none;
+}
+
+#extension-actions::part(action) {
+  width: var(--control);
+  height: var(--control);
+  border-radius: var(--radius);
+  background-size: var(--icon);
+  transition: background-color var(--duration);
+}
+
+#extension-actions::part(action):hover {
+  background-color: var(--hover);
+}
+
+#extension-actions::part(badge) {
+  height: var(--space-3);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  font-size: var(--text-xs);
+  line-height: var(--space-3);
+}
+
 .window-controls {
   display: flex;
   align-items: center;

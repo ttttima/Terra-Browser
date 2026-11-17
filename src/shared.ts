@@ -61,6 +61,15 @@ export const SPACE_COLORS = [
 ];
 
 /** Two tabs side by side; `ratio` is the left one's share of the width. */
+/** An installed Chrome extension, for Settings → Extensions. */
+export interface ExtensionInfo {
+  id: string;
+  name: string;
+  version: string;
+  /** data: URL of its icon, or empty. */
+  icon: string;
+}
+
 export interface SplitInfo {
   left: number;
   right: number;

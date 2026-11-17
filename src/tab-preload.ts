@@ -92,7 +92,12 @@ function chromeLikeSignIn(version: string) {
     };
   }
 }
-if (window === window.top && location.hostname === 'accounts.google.com') {
+// The Chrome Web Store too: it only offers "Add to Chrome" to Chrome.
+if (
+  window === window.top &&
+  (location.hostname === 'accounts.google.com' ||
+    location.hostname === 'chromewebstore.google.com')
+) {
   try {
     contextBridge.executeInMainWorld({
       func: chromeLikeSignIn,

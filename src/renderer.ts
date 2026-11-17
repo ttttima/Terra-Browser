@@ -6,6 +6,7 @@ import { updateAutoCompact } from './ui-auto-compact';
 import './ui-backdrop';
 import './ui-autorefresh';
 import './ui-google';
+import './ui-extensions';
 import { renderSpaces } from './ui-spaces';
 import { icon } from './ui-common';
 import {

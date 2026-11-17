@@ -2,6 +2,7 @@
 // text fields (with spelling fixes) and the page itself.
 import {
   Menu,
+  MenuItem,
   clipboard,
   type BrowserWindow,
   type ContextMenuParams,
@@ -24,6 +25,8 @@ export interface PageMenuActions {
   toggleBookmark: () => void;
   isBookmarked: boolean;
   isPrivate: boolean;
+  /** Items added by extensions (chrome.contextMenus). */
+  extensionItems?: MenuItem[];
 }
 
 const short = (text: string, max = 32) =>
@@ -230,7 +233,15 @@ export function showPageMenu(
     label: 'Inspect',
     click: () => contents.inspectElement(params.x, params.y),
   });
-  Menu.buildFromTemplate(items).popup({ window });
+  const menu = Menu.buildFromTemplate(items);
+  const extra = actions.extensionItems ?? [];
+  if (extra.length) {
+    // Above Inspect, like Chrome.
+    const at = menu.items.length - 1;
+    menu.insert(at, new MenuItem({ type: 'separator' }));
+    extra.forEach((item, i) => menu.insert(at + i, item));
+  }
+  menu.popup({ window });
 }
 
 /** Right-click in our own UI: just the text editing commands. */

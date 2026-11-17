@@ -49,6 +49,14 @@ import {
   revealPassword,
   saveLogin,
 } from './passwords';
+import {
+  addExtensionTab,
+  extensionMenuItems,
+  initExtensions,
+  listExtensions,
+  removeExtension,
+  selectExtensionTab,
+} from './extensions';
 import { loadSession, saveSession } from './session-store';
 import { loadSpaces, saveSpaces, type Space } from './spaces-store';
 import {
@@ -1278,6 +1286,8 @@ function activateTab(id: number) {
   updateWindowTitle();
   if (tab.isNewTab) focusAddressBar();
   else pageOf(tab)?.focus();
+  const page = pageOf(tab);
+  if (page) selectExtensionTab(page);
 }
 
 /** Opens the full-window panel on one page (e.g. History). */
@@ -1313,7 +1323,10 @@ const GOOGLE_SIGN_OUT =
 // ("client hints") says only "Chromium". On accounts.google.com the
 // requests also name "Google Chrome", like Chrome itself; tab-preload.ts
 // does the same for the page's scripts and fills in window.chrome.
-const SIGN_IN_URLS = ['https://accounts.google.com/*'];
+const SIGN_IN_URLS = [
+  'https://accounts.google.com/*',
+  'https://chromewebstore.google.com/*',
+];
 const CHROME_VERSION = process.versions.chrome;
 
 /** Adds "Google Chrome" to a sec-ch-ua brand list (major or full versions). */
@@ -1914,6 +1927,7 @@ function updateForcedDarkAll() {
 function wireTab(tab: Tab) {
   const view = tab.view;
   const contents = view.webContents;
+  if (window && !tab.isPrivate) addExtensionTab(contents, window);
   const isActive = () => tab.id === activeTabId;
 
   // Split view: clicking into one of the two pages (or tabbing into it)
@@ -1967,6 +1981,7 @@ function wireTab(tab: Tab) {
     if (!window || window.isDestroyed()) return;
     const url = shownUrl(tab);
     showPageMenu(window, contents, params, {
+      extensionItems: extensionMenuItems(contents, params),
       openTab: (link, options = {}) =>
         createTab(link, {
           nextToActive: true,
@@ -2939,6 +2954,54 @@ function offerToSave(
   });
 }
 
+// ---------------------------------------------------------------- extensions
+
+const tabOfContents = (contents: WebContents) =>
+  tabs.find((t) => pageOf(t) === contents) ?? null;
+
+function startExtensions() {
+  initExtensions({
+    createTab: (url, active) => {
+      const tab = createTab(url ?? null, {
+        activate: active,
+        nextToActive: true,
+      });
+      const page = tab && pageOf(tab);
+      return tab && page && window ? [page, window] : null;
+    },
+    selectTab: (contents) => {
+      const tab = tabOfContents(contents);
+      if (tab) activateTab(tab.id);
+    },
+    removeTab: (contents) => {
+      const tab = tabOfContents(contents);
+      if (tab) closeTab(tab.id);
+    },
+    confirmInstall: async (name, permissions, from) => {
+      const tab = tabOfContents(from);
+      if (!tab) return false;
+      const reads = permissions.some((p) =>
+        /^(<all_urls>|\*:\/\/\*\/\*|https?:\/\/\*\/\*)$/.test(p),
+      );
+      const response = await ask({
+        kind: 'extension-install',
+        tabId: tab.id,
+        text: reads
+          ? `Add "${name}"? It can read and change every website you visit.`
+          : `Add "${name}" to Terra?`,
+        actions: [
+          { id: 'add', label: 'Add extension' },
+          { id: 'cancel', label: 'Cancel' },
+        ],
+      });
+      return response.action === 'add';
+    },
+    changed: () => sendToUi('terra:extensions-changed', null),
+  }).catch((error: unknown) =>
+    console.error('Extensions are unavailable:', error),
+  );
+}
+
 /** A page with a sign-in form: offer to fill in a saved login. */
 function offerToFill(tab: Tab, origin: string) {
   const saved = loginsFor(origin);
@@ -3807,6 +3870,15 @@ function setUpIpc() {
   on('terra:bookmark-menu', (id) => isText(id, 64) && showBookmarkMenu(id));
   on('terra:open-bookmarks', () => showPanelPage('bookmarks'));
   on('terra:close-asleep-tabs', closeAsleepTabs);
+
+  // Extensions (Settings → Extensions).
+  handle('terra:extensions', () => listExtensions());
+  on('terra:extension-remove', (id) => {
+    if (isText(id, 64)) void removeExtension(id);
+  });
+  on('terra:open-web-store', () =>
+    createTab('https://chromewebstore.google.com/category/extensions'),
+  );
   on('terra:bookmark-remove', (id) => isText(id, 64) && removeBookmark(id));
   on('terra:bookmark-rename', (id, title) => {
     if (isText(id, 64) && isText(title, 1024)) renameBookmark(id, title);
@@ -3955,6 +4027,7 @@ app.whenReady().then(() => {
   initPasswords(() => sendToUi('terra:logins-changed', null));
   initAdblock();
   setUpSession(session.defaultSession, false);
+  startExtensions();
   watchGoogleSignIn();
   setInterval(sleepUnusedTabs, 30_000);
 
