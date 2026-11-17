@@ -105,6 +105,7 @@ import {
   updateVisitTitle,
 } from './library';
 import {
+  DARK_GRAY,
   DEFAULT_SETTINGS,
   AUTO_REFRESH_MS,
   HOLD_TO_REFRESH_MS,
@@ -1910,7 +1911,7 @@ async function endSlide() {
 function tabBackground() {
   // Shown for a moment before a page paints. Match the color mode so new
   // pages never flash white in dark / OLED mode.
-  if (settings.forceDark) return '#0a0a0a';
+  if (settings.forceDark) return DARK_GRAY;
   return themeBackground(settings);
 }
 

@@ -70,6 +70,12 @@ export interface ExtensionInfo {
   icon: string;
 }
 
+/**
+ * Force dark mode: the gray a white page becomes (dark-mode.ts), also the
+ * tab's color before a page paints.
+ */
+export const DARK_GRAY = '#2b2b2b';
+
 export interface SplitInfo {
   left: number;
   right: number;
