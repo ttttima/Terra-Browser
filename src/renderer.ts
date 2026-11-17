@@ -733,6 +733,13 @@ sleepTabs.addEventListener('change', () =>
 );
 const askDownload = $<HTMLInputElement>('#setting-ask-download');
 const smoothDividers = $<HTMLInputElement>('#setting-smooth-dividers');
+// The web page's corners (main.ts rounds the page itself; these are the
+// picture shown while the sidebar slides and the smooth-divider glow).
+const roundedCorners = $<HTMLInputElement>('#setting-rounded-corners');
+roundedCorners.addEventListener('change', () => {
+  document.body.classList.toggle('square-corners', !roundedCorners.checked);
+  window.browser.updateSettings({ roundedCorners: roundedCorners.checked });
+});
 const smoothDividersRow = $<HTMLElement>('#smooth-dividers-row');
 const windowAnimations = $<HTMLInputElement>('#setting-window-animations');
 
@@ -1776,6 +1783,8 @@ window.browser.onSettingsChanged((settings) => {
   updateAutoCompact({ enabled: settings.autoCompactSidebar });
   showDividers.checked = settings.showDividers;
   smoothDividers.checked = settings.smoothDividers;
+  roundedCorners.checked = settings.roundedCorners;
+  document.body.classList.toggle('square-corners', !settings.roundedCorners);
   forceDark.checked = settings.forceDark;
   scrollTabs.checked = settings.scrollTabs;
   holdRefresh.checked = settings.holdToAutoRefresh;

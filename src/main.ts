@@ -358,6 +358,7 @@ function sanitizeSettings(value: Partial<Settings>): Settings {
     autoCompactSidebar: value.autoCompactSidebar === true,
     showDividers: value.showDividers !== false,
     smoothDividers: value.smoothDividers === true,
+    roundedCorners: value.roundedCorners !== false,
     forceDark: value.forceDark === true,
     scrollTabs: value.scrollTabs === true,
     holdToAutoRefresh: value.holdToAutoRefresh === true,
@@ -983,7 +984,10 @@ function layout() {
     const visible = pageShouldShow(tab) && !sidebarSliding;
     // A rounded card next to the sidebar and toolbar; edge to edge in
     // video fullscreen.
-    tab.view.setBorderRadius(htmlFullScreen ? 0 : PAGE_RADIUS);
+    // "Rounded corners" off in Appearance: square.
+    tab.view.setBorderRadius(
+      htmlFullScreen || !settings.roundedCorners ? 0 : PAGE_RADIUS,
+    );
     tab.view.setVisible(visible);
     if (visible) tab.lastShown = Date.now();
   }
@@ -3626,6 +3630,7 @@ function setUpIpc() {
       return;
     }
     const before = settings.sidebarCollapsed;
+    const beforeRounded = settings.roundedCorners;
     const beforeBackground = `${themeBackground(settings)} ${glassBehind()}`;
     const beforeDark = settings.forceDark;
     settings = sanitizeSettings({ ...settings, ...changes });
@@ -3643,6 +3648,8 @@ function setUpIpc() {
     if (settings.sidebarCollapsed !== before) {
       layout();
       sendTabs();
+    } else if (settings.roundedCorners !== beforeRounded) {
+      layout();
     }
   });
   // Read-only, used by tab-preload.ts in every website tab.

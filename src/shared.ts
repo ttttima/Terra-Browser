@@ -490,6 +490,8 @@ export interface Settings {
   showDividers: boolean;
   /** Soft, faded dividers instead of sharp 1px lines. */
   smoothDividers: boolean;
+  /** The web page's rounded corners (--radius-page); off: square. */
+  roundedCorners: boolean;
   /** Make websites without a dark mode dark (built-in forcer). */
   forceDark: boolean;
   /** Mouse wheel over the sidebar switches tabs. */
@@ -565,6 +567,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoCompactSidebar: false,
   showDividers: true,
   smoothDividers: false,
+  roundedCorners: true,
   forceDark: false,
   scrollTabs: false,
   holdToAutoRefresh: false,

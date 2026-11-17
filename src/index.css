@@ -1339,6 +1339,12 @@ body.start-open {
   --edge: var(--bg);
 }
 
+/* "Rounded corners" off (Appearance): the page and everything shaped
+   like it are square. */
+body.square-corners {
+  --radius-page: 0px;
+}
+
 #page-glow {
   display: none;
   grid-row: 3;
