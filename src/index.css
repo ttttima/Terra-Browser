@@ -593,6 +593,49 @@ body.sidebar-collapsed #open-downloads {
   display: none;
 }
 
+/* A download the user hasn't looked at yet: a dot on the arrow (on the
+   gear in the compact sidebar, where the arrow is hidden). */
+#open-downloads,
+#open-settings {
+  position: relative;
+}
+
+body.downloads-unseen #open-downloads::after,
+body.downloads-unseen.sidebar-collapsed #open-settings::after {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  pointer-events: none;
+}
+
+/* The file flying into the downloads button (moved by renderer.ts). */
+.download-flight {
+  position: fixed;
+  z-index: 1000;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.download-chip {
+  position: absolute;
+  left: calc(var(--control) / -2);
+  top: calc(var(--control) / -2);
+  display: grid;
+  place-items: center;
+  width: var(--control);
+  height: var(--control);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow);
+}
+
 #open-downloads.active,
 #open-settings.active,
 #bookmarks-pop-button.active {

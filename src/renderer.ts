@@ -1475,6 +1475,10 @@ function measureSpeeds() {
 }
 
 function renderDownloads() {
+  if (unseenDownloads.size) {
+    unseenDownloads.clear();
+    showUnseenDot();
+  }
   if (downloads.length === 0) {
     downloadsList.replaceChildren(emptyState('No downloads yet'));
     return;
@@ -1548,8 +1552,104 @@ function downloadRow(d: DownloadInfo) {
   return row;
 }
 
+// New downloads fly into the footer arrow, which then wears a dot until the
+// Downloads page is opened.
+/** Downloads the UI already knows about; null until the first list. */
+let knownDownloads: Set<string> | null = null;
+const unseenDownloads = new Set<string>();
+
+function downloadsVisible() {
+  return currentPage === 'downloads' && !settingsPage.hidden;
+}
+
+function showUnseenDot() {
+  document.body.classList.toggle('downloads-unseen', unseenDownloads.size > 0);
+}
+
+/** The compact sidebar has no arrow: Settings (where Downloads is) instead. */
+function downloadsTarget() {
+  return openDownloads.offsetParent ? openDownloads : openSettings;
+}
+
+/** A small file leaves the toolbar and drops into the downloads button. */
+function flyToDownloads() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const target = downloadsTarget().getBoundingClientRect();
+  const start = $('#toolbar').getBoundingClientRect();
+  if (!target.width || !start.width) return;
+  const from = {
+    x: start.left + start.width / 2,
+    y: start.top + start.height / 2,
+  };
+  const to = {
+    x: target.left + target.width / 2,
+    y: target.top + target.height / 2,
+  };
+  const duration = uiDuration() * 4;
+  // Sideways fast and down slow, so it curves along the toolbar and down
+  // the sidebar instead of cutting across the page.
+  const across = document.createElement('div');
+  across.className = 'download-flight';
+  across.style.left = `${from.x}px`;
+  across.style.top = `${from.y}px`;
+  const down = document.createElement('div');
+  down.className = 'download-chip';
+  down.innerHTML = `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS.file}</svg>`;
+  across.append(down);
+  document.body.append(across);
+  across.animate(
+    [
+      { transform: 'translateX(0)' },
+      { transform: `translateX(${to.x - from.x}px)` },
+    ],
+    { duration, easing: 'cubic-bezier(0.2, 0.8, 0.4, 1)', fill: 'forwards' },
+  );
+  const landing = down.animate(
+    [
+      { transform: 'translateY(0) scale(0.5)', opacity: 0 },
+      { transform: 'translateY(0) scale(1)', opacity: 1, offset: 0.15 },
+      { transform: `translateY(${to.y - from.y}px) scale(0.5)`, opacity: 1 },
+    ],
+    { duration, easing: 'cubic-bezier(0.6, 0, 0.8, 0.6)', fill: 'forwards' },
+  );
+  landing.finished
+    .then(() => {
+      across.remove();
+      downloadsTarget().animate(
+        [
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.25)' },
+          { transform: 'scale(1)' },
+        ],
+        { duration: uiDuration() * 2, easing: 'ease-out' },
+      );
+    })
+    .catch(() => across.remove());
+}
+
+function noticeNewDownloads(list: DownloadInfo[]) {
+  const ids = new Set(list.map((d) => d.id));
+  for (const id of unseenDownloads)
+    if (!ids.has(id)) unseenDownloads.delete(id);
+  if (!knownDownloads) {
+    // What was there at start was seen before.
+    knownDownloads = ids;
+    return;
+  }
+  let arrived = false;
+  for (const d of list) {
+    if (knownDownloads.has(d.id)) continue;
+    knownDownloads.add(d.id);
+    arrived = true;
+    if (!downloadsVisible()) unseenDownloads.add(d.id);
+  }
+  if (arrived) flyToDownloads();
+  showUnseenDot();
+}
+
 window.browser.onDownloads((list) => {
   downloads = list;
+  noticeNewDownloads(list);
   measureSpeeds();
   // The footer arrow glows in the accent color while something downloads.
   openDownloads.classList.toggle(
