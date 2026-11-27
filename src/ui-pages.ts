@@ -40,6 +40,7 @@ const suggestions = $<HTMLInputElement>('#setting-search-suggestions');
 const suggestionsText = $<HTMLElement>('#search-suggestions-text');
 const blockAds = $<HTMLInputElement>('#setting-block-ads');
 const offerPasswords = $<HTMLInputElement>('#setting-offer-passwords');
+const autofillPasswords = $<HTMLInputElement>('#setting-autofill-passwords');
 const clearOnExit = $<HTMLInputElement>('#setting-clear-on-exit');
 const autoUpdate = $<HTMLInputElement>('#setting-auto-update');
 
@@ -49,6 +50,8 @@ window.browser.onSettingsChanged((settings: Settings) => {
   suggestionsText.textContent = `Sends what you type in the address bar to ${SEARCH_ENGINES[settings.searchEngine].name}`;
   blockAds.checked = settings.blockAds;
   offerPasswords.checked = settings.offerPasswords;
+  autofillPasswords.checked = settings.autofillPasswords;
+  autofillPasswords.disabled = !settings.offerPasswords;
   clearOnExit.checked = settings.clearOnExit;
   autoUpdate.checked = settings.autoUpdate;
 });
@@ -66,6 +69,9 @@ blockAds.addEventListener('change', () =>
 );
 offerPasswords.addEventListener('change', () =>
   update({ offerPasswords: offerPasswords.checked }),
+);
+autofillPasswords.addEventListener('change', () =>
+  update({ autofillPasswords: autofillPasswords.checked }),
 );
 clearOnExit.addEventListener('change', () =>
   update({ clearOnExit: clearOnExit.checked }),

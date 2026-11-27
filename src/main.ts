@@ -399,6 +399,7 @@ function sanitizeSettings(value: Partial<Settings>): Settings {
     searchSuggestions: value.searchSuggestions === true,
     blockAds: value.blockAds !== false,
     offerPasswords: value.offerPasswords !== false,
+    autofillPasswords: value.autofillPasswords !== false,
     clearOnExit: value.clearOnExit === true,
     autoUpdate: value.autoUpdate !== false,
   };
@@ -3007,10 +3008,46 @@ function startExtensions() {
   );
 }
 
-/** A page with a sign-in form: offer to fill in a saved login. */
+/** Sends a saved login to the page's sign-in form. */
+function fillLogin(
+  contents: Electron.WebContents,
+  login: { id: string; username: string },
+  auto: boolean,
+) {
+  const password = revealPassword(login.id);
+  if (password === null) return;
+  contents.send('terra:login-fill', login.username, password, {
+    auto,
+    accent: settings.accentColor,
+  });
+}
+
+/** Only over a connection nobody can read: https, or this computer. */
+function safeToAutofill(origin: string) {
+  return (
+    origin.startsWith('https://') ||
+    /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin)
+  );
+}
+
+/**
+ * A page with a sign-in form: fill in the saved login by itself when there
+ * is just one (and the setting is on), otherwise offer the choice.
+ */
 function offerToFill(tab: Tab, origin: string) {
   const saved = loginsFor(origin);
   if (!saved.length) return;
+  if (
+    saved.length === 1 &&
+    settings.autofillPasswords &&
+    safeToAutofill(origin)
+  ) {
+    const contents = pageOf(tab);
+    if (contents && originOf(contents.getURL()) === origin) {
+      fillLogin(contents, saved[0], true);
+    }
+    return;
+  }
   const site = hostLabel(origin);
   void ask({
     kind: 'fill-password',
@@ -3035,10 +3072,7 @@ function offerToFill(tab: Tab, origin: string) {
         : saved.find((l) => l.id === response.choice);
     const contents = pageOf(tab);
     if (!login || !contents || originOf(contents.getURL()) !== origin) return;
-    const password = revealPassword(login.id);
-    if (password !== null) {
-      contents.send('terra:login-fill', login.username, password);
-    }
+    fillLogin(contents, login, false);
   });
 }
 

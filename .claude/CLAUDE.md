@@ -11,7 +11,8 @@ Terra is a desktop web browser built with Electron + TypeScript + Vite (Electron
   window's soft gradients drawn dithered on the GPU;
   pages: privacy, bookmarks, passwords)
 - `src/tab-preload.ts`: runs in every website (dark mode forcer from
-  `dark-mode.ts`, password helper), in an isolated world
+  `dark-mode.ts`, password helper with the fill glitter from
+  `glitter.ts`), in an isolated world
 - Data modules: `library.ts` (history, downloads), `bookmarks.ts`,
   `passwords.ts`, `site-settings.ts`, `session-store.ts`, plus `importer.ts`,
   `adblock.ts`, `updater.ts`, `suggest.ts`, `context-menu.ts`,

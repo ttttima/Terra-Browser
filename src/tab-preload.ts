@@ -5,6 +5,7 @@
 // helper.
 import { contextBridge, ipcRenderer } from 'electron';
 import { initDarkMode, setForceDark } from './dark-mode';
+import { glitter } from './glitter';
 
 // ---- Google sign-in (see SIGN_IN_URLS in main.ts). Google refuses to sign
 // in browsers it takes for an embedded one: there window.chrome is empty
@@ -133,9 +134,10 @@ ipcRenderer.on('browser:force-dark', (_event, on: unknown) =>
 // ---------------------------------------------------------------- passwords
 //
 // Tells Terra when the page shows a sign-in form (so it can offer a saved
-// login) and when one is sent (so it can offer to save it). Filling happens
-// only after the user clicks "Fill in" in Terra's bar. Only the page itself
-// takes part, never frames inside it.
+// login) and when one is sent (so it can offer to save it). Terra fills the
+// form by itself when the site has one saved login (a setting), otherwise
+// after the user clicks "Fill in" in Terra's bar; either way with glitter.
+// Only the page itself takes part, never frames inside it.
 
 const isTopPage =
   window === window.top && /^https?:$/.test(window.location.protocol);
@@ -230,13 +232,21 @@ if (isTopPage) {
     true,
   );
 
-  // The user chose "Fill in" in Terra's bar.
+  // A saved login to fill in: chosen in Terra's bar, or sent by itself
+  // (`auto`) when the site has only one.
   ipcRenderer.on(
     'terra:login-fill',
-    (_event, username: unknown, password: unknown) => {
+    (_event, username: unknown, password: unknown, options: unknown) => {
       if (typeof username !== 'string' || typeof password !== 'string') return;
+      const { auto = false, accent = '' } =
+        (options as { auto?: boolean; accent?: string } | null) ?? {};
       const field = passwordFields()[0];
       if (!field) return;
+      const user = usernameFor(field);
+      // Never write over what the user has started typing.
+      if (auto && (field.value || (user?.value && user.value !== username))) {
+        return;
+      }
       // Set values the way typing does, so sites built with React etc. notice.
       const setValue = (input: HTMLInputElement, value: string) => {
         const setter = Object.getOwnPropertyDescriptor(
@@ -247,11 +257,11 @@ if (isTopPage) {
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
       };
-      const user = usernameFor(field);
       if (user && username) setValue(user, username);
       setValue(field, password);
       lastSent = `${username}\n${password}`;
-      field.focus();
+      if (!auto) field.focus();
+      glitter(user && username ? [user, field] : [field], accent);
     },
   );
 }

@@ -542,6 +542,8 @@ export interface Settings {
   blockAds: boolean;
   /** Offer to save passwords and fill them in. */
   offerPasswords: boolean;
+  /** Fill in the saved login by itself when a site has only one. */
+  autofillPasswords: boolean;
   /** Delete cookies, cache and site data when Terra closes. */
   clearOnExit: boolean;
   /** Download new versions in the background and offer to restart. */
@@ -592,6 +594,7 @@ export const DEFAULT_SETTINGS: Settings = {
   searchSuggestions: false,
   blockAds: true,
   offerPasswords: true,
+  autofillPasswords: true,
   clearOnExit: false,
   autoUpdate: true,
 };
